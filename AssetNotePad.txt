@@ -1,0 +1,814 @@
+package com.cg.asset.ui;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+import org.apache.log4j.Logger;
+
+import com.cg.asset.bean.AssetIMBean;
+import com.cg.asset.bean.AssetInvBean;
+import com.cg.asset.dao.AdminDAO;
+import com.cg.asset.dao.IAdminDAO;
+import com.cg.asset.exception.AdminException;
+import com.cg.asset.exception.UserException;
+import com.cg.asset.service.AdminService;
+//import com.cg.asset.bean.UserAuthen;
+import com.cg.asset.service.AuthenticateUserService;
+import com.cg.asset.service.IAdminService;
+import com.cg.asset.service.IAuthenticateUserService;
+import com.cg.asset.service.IUserService;
+import com.cg.asset.service.UserService;
+
+public class User {
+	static IAuthenticateUserService service=new AuthenticateUserService();
+	static IAdminService service1=new AdminService();
+	static IAdminService update=new AdminService();
+	static int option=0;
+	static int choice=0;
+	static int flag=0;
+	static int flag1=0;
+    static String managerno="";
+    static java.util.logging.Logger log=Logger.getRootLogger();
+	public static void main(String[] args)throws AdminException, UserException {
+		
+		int a=0;
+		Scanner scan=new Scanner(System.in);
+        System.out.println("***********ASSET MANAGEMENT PORTAL*************");
+        do{
+        	
+        	try
+        	{
+        	    a=0;
+		        System.out.println("Please select the type of user");
+		        System.out.println("1. Admin");
+		        System.out.println("2. Manager");
+		       
+		        option=scan.nextInt();
+		        if(option<1 || option>2)
+		        {
+		        	System.err.println("Invalid option");
+		        	log.info("Invalid option was entered");
+		        	System.out.println("Enter either 1 or 2 ");
+		        	a=1;
+		        }
+		        
+		    
+		        else
+		        {
+		        		System.out.println("Enter your userid");
+				        String user=scan.next();
+				        System.out.println("Enter password");
+				        String password=scan.next();
+				        flag=service.authenticateUser(user,password,option);
+				        if (flag==1)
+				        {
+				        	System.out.println("Logged in successfully as admin");
+				        	log.info("Log in successful as admin");
+				        	adminMenu();
+				        	
+				        	
+				        }
+				        else if(flag==2)
+				        {
+				        	System.out.println("Logged in succesfully as Manager");
+				        	log.info("Log in succesful as manager ");
+				        	managerno=user;
+				        	managerMenu();
+				        }
+				
+		        }
+        	}
+           catch(InputMismatchException e)
+           {
+                
+         		 a=1;
+         	     System.err.println("Check and re-enter the inputs");
+         	     log.error("Input type did not match");
+         	    
+           }
+           catch(AdminException e)
+           {
+        	   	a=1;
+	        	System.err.println("Incorrect User Credentials");
+	        	log.error("Login Credentials was invalid");
+	        	 
+           }
+        	System.err.flush();
+        	scan.nextLine();
+        	
+     }while(a==1); 
+        System.err.flush();
+    	scan.nextLine();
+	}
+   /* System.err.flush();
+    	scan.nextLine();*/
+//                                                ######################### A D M I N ############################     
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    	public static void adminMenu() throws UserException,AdminException
+    	{
+        int z1=0;
+        Scanner scan=new Scanner(System.in);
+    	if(flag==1)
+        {
+        	 do{
+             	try{
+                      z1=0;
+            do{ 
+            System.out.println("     ");
+            System.out.println("ADMIN MENU");
+        	System.out.println("1. Add a new asset");
+        	System.out.println("2. Modify an asset");
+        	System.out.println("3. Approve/Reject a request");
+        	System.out.println("4. View list of assets based on allocated/unallocated assets");
+        	System.out.println("5. Log Out");
+        	System.out.println("6. Exit Portal");
+        	choice=scan.nextInt();
+            int a1=0;
+            int d1=0;
+            switch(choice)
+            {
+            case 1: {
+            	   do{
+            		   try{
+		            	    a1=0;
+		                    System.out.println("Enter a meaningful asset name");
+		                    String du3=scan.nextLine();
+		                    String aname=scan.nextLine();
+		                    System.out.println("Enter a meaningful asset description");
+		                    //String du4=scan.nextLine();
+		                    String adesc=scan.nextLine();
+		                    System.out.println("Enter the asset quantity(in numbers)");
+		                    int aquantity=scan.nextInt();
+		                    String astatus="";
+		                    int c=0;
+		                    do{
+		                    	try{
+		                    		c=0;
+                            System.out.println("Enter the status 1.Available \n 2.Not Available");
+		                    int ch=scan.nextInt();
+		                    
+		                    switch(ch)
+		                    {
+		                    case 1:astatus="Available";
+		                           break;
+		                    case 2:astatus="Not Available";
+		                           break;
+		                    default:
+		                    	    System.err.println("Invalid choice");
+		                            System.out.println("Choose only 1 or 2");
+		                            log.info("Input had to be only 1 or 2")
+		                            c=1;
+		                            break;
+		                    }
+		                    	}
+		                    	catch(InputMismatchException e)
+		                    	{
+		                    		System.err.println("Enter only 1 or 2");
+		                    		log.error("Input in the form of digits were expected");
+		                    		c=1;
+		                    	}
+		                    	System.err.flush();
+		                    	scan.nextLine();
+		                    }while(c==1);
+		                    AssetIMBean bean1=new AssetIMBean();
+		                    bean1.setAssetName(aname);
+		                    bean1.setAssetDesc(adesc);
+		                    bean1.setAssetQuantity(aquantity);
+		                    bean1.setAssetStatus(astatus);
+                            // AssetIMBean bean1=new AssetIMBean(aid,aname,adesc,astatus);
+		                    IAdminService service1=new AdminService();
+		                    int inssuccess=service1.addAsset(bean1);
+		                    if(inssuccess!=-1)
+		                    {
+		                    	System.out.println("Asset details inserted successfully");
+		                    	log.info("Addition of a new asset was successful");
+		                    	User.adminMenu();
+		                    	
+		                    }
+		                    else
+		                    {
+		                    	System.out.println("Asset insertion failed");
+		                    	log.info("Addition of a new asset was not possible");
+		                    }
+		            }
+            		   catch(InputMismatchException e){
+	            		
+	            		 a1=1;
+	            	     System.err.println("Inputs not acceptable");
+	            	     log.error("Type of inputs did not match");
+            		}
+            		   catch(AdminException e)
+            	  {
+            		  System.err.println(e); 
+            		  a1=1;
+            	  }
+                  System.err.flush();
+            	  scan.nextLine();  
+            }while(a1==1);
+            	  
+                   break;
+            }       
+           
+            case 2:
+            	{   
+            		
+            		int pchoice=0;
+            		System.out.println("ASSET INVENTORY");
+           		 
+        	        ArrayList<AssetIMBean> displayInventory= service1.displayAssetInventory();
+        	        
+        	        for(AssetIMBean disp:displayInventory)
+        	        {
+        	             System.out.println("Asset Id: " + disp.getAssetId()+"  Asset Name: "+disp.getAssetName()+"  Asset Description: "+disp.getAssetDesc()+"   Quantity: "+disp.getAssetQuantity()+"  Status: "+disp.getAssetStatus());
+        	        }
+        	       //do{ 
+        	        int aa=0;
+        	        do{
+        	        	
+        	        aa=0;
+            		System.out.println("Enter the asset ID you want to modify");
+	            		int assetid1=scan.nextInt();
+	            		int validId=service1.validateAssetId(assetid1);
+	            		
+	            			
+	            		if(validId!=-1)
+	            		{
+	            			do{
+		            			try{
+	            		System.out.println("Choose the asset parameter you want to modify");
+            			System.out.println("1.AssetName \n 2.Asset Description \n 3.Asset Quantity \n 4.Asset Status\n 5.Return to Admin Menu \n6.Log Out\n 7.Exit");
+            		    pchoice=scan.nextInt();
+            		    switch(pchoice)
+            			{
+            			case 1:
+            					System.out.println("Enter the new asset name");
+            			        String du2=scan.nextLine();
+            			        String newaname=scan.nextLine();
+            			        int updatedName=update.updateAssetName(validId,newaname);
+            			        if(updatedName==1)
+            			        {
+            			        	System.out.println("Name of the asset updated to << "+newaname+" >>");
+            			        	log.info("Name of the asset was updated");
+            			        	
+            			        }
+            			        else
+            			        {
+            			        	System.out.println("Failed to update asset name");
+            			        	log.info("Failed to update asset name");
+            			        	
+            			        }
+            			        break;
+            			     
+            			case 2: 
+            					System.out.println("Enter the new asset description");
+            			        String du3=scan.nextLine();
+		    			        String newadesc=scan.nextLine();
+		    			        int updateddesc=update.updateAssetDesc(validId,newadesc);
+		    			        if(updateddesc==1)
+		    			        {
+		    			        	System.out.println("Description of the Asset updated to << "+newadesc+" >>");
+		    			        	log.info("Description of the asset updated");
+		    			        }
+		    			        else
+		    			        {
+		    			        	System.out.println("Failed to update Asset Description");
+		    			        	log.info("Failed to update asset description");
+		    			        }
+		    			        break;
+	
+		            	case 3:
+		            	
+		            			
+		            		    System.out.println("Enter the new asset quantity");
+		    			        int newaquant=scan.nextInt();
+		    			        int updatedquant=update.updateQuantity(validId,newaquant);
+		    			        if(updatedquant==1)
+		    			        {
+		    			        	System.out.println("Quantity of the Asset updated to << "+newaquant+" >>");
+		    			            log.info("Quantity of the asset was updated"); 
+		    			        }
+		    			        else
+		    			        {
+		    			        	System.out.println("Failed to update Asset Quantity");
+		    			        	log.info("Failed to update asset quantity");
+		    			        	d1=1;
+		    			        }
+		            			
+		            			
+		    			        break;
+			
+            			case 4:
+            				int schoice=0;
+            				int s1=0;
+            				String newastatus="";
+            				do{
+            					s1=0;
+	            				System.out.println("Choose the new asset status 1.Available    2.Not Available");
+	            				schoice=scan.nextInt();
+	            				
+	            				switch(schoice)
+	            				{
+	            				case 1:newastatus="Available";
+	            				       break;
+	            				case 2:newastatus="Not Available";
+	            				       break;
+	            				default:System.out.println("Invalid choice");
+	            				 		log.info("Option entered was not valid");
+	            				        s1=1;
+	            				        break;
+            				        
+	            				}
+            				    }while(s1==1);
+	            				if(schoice==1 || schoice==2){
+	            				int updatedstatus=update.updateStatus(validId,newastatus);
+		    			        if(updatedstatus==1)
+		    			        {
+		    			        	System.out.println("Status of the Asset updated to << "+newastatus+" >>");
+		    			        	log.info("Status of the asset was updated");
+		    			        }
+		    			        else
+		    			        {
+		    			        	System.out.println("Failed to update Asset Status");
+		    			        	log.info("Failed to update asset status");
+		    			        }
+	            				}
+		    			        break;
+            			case 5: User.adminMenu();
+    							break;
+            			case 6:	
+                        		User.main(null);
+                        		break;
+            			case 7: System.out.println("Portal terminated");
+            					log.info("Portal was terminated");
+                                System.exit(0);
+                                break;
+            			
+            			default:System.err.println("Invalid choice...Enter a number from 1 to 6 only");
+            					log.info("Option entered was invalid");
+            					d1=1;
+            					
+            				 	break;
+            	}
+            			
+	
+		
+	            			
+	            	}	catch(InputMismatchException e)
+        				{
+	            			
+        					System.err.println("Input not acceptable..Enter only digits");
+        					log.error("Expected inputs only in the form of digits");
+        					d1=1;
+        					
+        					
+        				}	
+	            			catch(AdminException e)
+	            			{
+	            				
+	            				System.err.println("Check the entered values and try again");
+	            				d1=1;
+	            				
+	            			}
+	                    	System.err.flush();
+	                    	scan.nextLine();
+	            		   }while(d1==1);
+
+            	}
+               else{
+				
+				System.err.println("Entered Asset Id is invalid");
+				log.error("Asset ID was invalid");
+				aa=1;
+			}
+	            	System.err.flush();	
+	            	scan.nextLine();
+        	        }while(aa==1);       
+            }break;
+	         
+    //                                      !!!!!!!!!!APPROVE/REJECT REQUEST!!!!!!!!!!        
+            case 3:
+            {
+
+            	    System.out.println("Displaying the asset requests yet to be approved/rejected");
+            		System.out.println(" ");
+                    IAdminDAO serve=new AdminDAO();
+                    ArrayList<AssetInvBean> displayPendingRequest=serve.displayAllocationEntries();
+                    for(AssetInvBean disp:displayPendingRequest)
+                    {
+                    	System.out.println("Allocation ID: "+ disp.getAllocationid()+"  Asset ID: "+disp.getAssetid()+"  Emp no: "+disp.getEmpno()+"  Status: "+disp.getStatus());
+                    	
+                    }
+                    int achoice=0;
+	                do{
+	                	
+		            System.out.println("  ");	
+		            System.out.println("Please select whether you want to approve or reject the request");
+		            System.out.println("1.Approve\n2.Reject\n3.Log Out\n4.Exit");
+		            achoice=scan.nextInt();
+		            switch(achoice)
+		            {
+		            case 1: 
+		            {
+		            	System.out.println("Enter the Allocation Id for which the request needs to be approved:");
+		            	int approveId=scan.nextInt();
+		            	int checkedapproveId=serve.validateAllocationId(approveId);
+		            	
+		            	if(checkedapproveId!=-1)
+		            	{ 
+		            		System.out.println("Checking whether the asset is available or not....");
+		            		
+		            		int assetexist=serve.checkAssetAvailabilty(approveId);
+		            		
+		            		if(assetexist!=-1)
+		            		{
+		            		System.out.println("Asset Available");
+		            		System.out.println("Are you sure you want to approve this request? 1.Yes\n 2.No");
+		            		int confirm=scan.nextInt();
+		            		switch(confirm)
+		            		{
+		            		case 1: int approve=serve.approveRequest(approveId);
+				            		if(approve==1)
+				            		{
+				            		        System.out.println("<<Asset approved>>..Status changed to 'Allocated' ");
+				            		        log.info("Asset was approved");
+				            		        int setdate=serve.changeReleaseDate(approveId);
+				            		       // System.out.println(setdate);
+				            		        int recentid=serve.retrieveAssetId(approveId);
+				            		        int changedquantity=serve.changeQuantity(recentid);
+				            		        
+				            		}
+				            		else
+				            		{
+				            			System.out.println("Failed to approve request");
+				            			log.info("ASset could not be approved");
+				            		}
+				            		 break;
+		            		case 2:  System.out.println("No changes to asset request");
+		            				 log.info("No changes were made to the asset request");
+		            		         break;
+		            		default: System.out.println("Invalid option..Enter only 1 or 2");
+		            				 log.info("Option entered was invalid");
+		            		         break;
+		            			
+		            		}
+			            		
+			            }
+		            	else
+			            	{
+		            			System.out.println("Unable to approve Asset as it is currently not available");
+		            			log.info("Asset was not approved");
+			            	}
+		            }
+			            else
+			            {
+			            		System.err.println("Invalid Allocation Id");
+			            		log.error("Allocation ID entered was invalid");
+			            }
+		            	
+			            break;
+		            }
+		            case 2:	
+		            	{
+		            		System.out.println("Enter the Allocation Id for which the request needs to be rejected:");
+		            		int rejectId=scan.nextInt();
+			            	int checkedrejectId=serve.validateAllocationId(rejectId);
+			            	if(checkedrejectId!=-1)
+			            	{
+			            		System.out.println("Are you sure you want to reject this request? 1.Yes   2.No  3.Log Out 4.Exit ");
+			            		int confirm1=scan.nextInt();
+			            		switch(confirm1)
+			            		{
+			            		case 1: int reject=serve.rejectRequest(rejectId);
+					            		if(reject==1)
+					            		{
+					            		        
+					            			System.out.println("<<Asset Rejected>>..Status changed to 'Rejected' ");
+					            			log.info("Asset request was rejected successfully");
+					            		}
+					            		else
+					            		{
+					            			System.out.println("Failed to reject request");
+					            			log.info("Asset request was not rejected");
+					            		}
+					            		break;
+			            		case 2:  System.out.println("No changes to asset request");
+			            				 log.info("No changes was made to the asset request");
+			            				break;
+			            		case 3: User.main(null);
+		                           		break;
+			            		case 4: System.out.println("Portal terminated");
+			            				log.info("Portal was terminated");
+			            				System.exit(0);
+			            				break;
+			            		default: System.out.println("Invalid option..Enter only 1 / 2 / 3 / 4");
+			            				 log.info("option entered was invalid");
+	            		        		 break;
+			            		}
+			            		
+			            	}
+			            	 else
+					            {
+					            		System.err.println("Invalid Allocation Id");
+					            		log.info("Entered allocation Id was invalid");
+					            }
+			            	break;
+			              }
+		            case 3:	User.main(null);
+                           	break;
+		            case 4:	System.out.println("Portal Terminated");
+		            		log.info("Portal was terminated");
+		            		System.exit(0);
+            	    		break;
+		            default: System.out.println("Invalid option..Enter only 1 or 2");
+                             log.info("Option entered was wrong");      
+		            }
+	                }while(achoice > 2 || achoice< 1 );
+
+		            
+            }
+            break;
+         /*   case 3: User.main(null);
+                    break;
+            case 4: System.out.println("Portal Terminated");
+            	    
+            	   */
+            
+           
+ //********************************************************************************************************************************
+            case 4: System.out.println("Choose 1 or 2");  
+            		System.out.println("1. View list of allocated assets");
+            		System.out.println("2. View list of unallocated assets");
+            		int assetoption=scan.nextInt();
+            		
+            		switch(assetoption)
+            		{
+            		case 1: 
+            			System.out.println("ALLOCATED ASSETS");
+               		 
+            	        ArrayList<AssetInvBean> displayInventory= service1.viewAllocatedAsset();
+            	       
+            	        for(AssetInvBean disp:displayInventory)
+            	        {
+            	             System.out.println(" Allocation ID: "+disp.getAllocationid()+"  Asset Id: " + disp.getAssetid()+"  Employee No: "+disp.getEmpno()+"  Status: "+disp.getStatus());
+            	             		
+            	        }
+            	    break;
+            		case 2:
+            			System.out.println("UNALLOCATED ASSETS");
+            			ArrayList<AssetInvBean> displayInventory1= service1.viewUnallocatedAsset();
+            			
+            			for(AssetInvBean disp:displayInventory1)
+            	        {
+            	             System.out.println(" Allocation ID: "+disp.getAllocationid()+"  Asset Id: " + disp.getAssetid()+"  Employee No: "+disp.getEmpno()+"  Status: "+disp.getStatus());
+            	             		
+            	        }
+
+            		break;
+            		default: System.out.println("Invalid option");
+            		log.info("option entered was wrong");
+            		break;
+            		}
+                   break;
+            case 5: System.out.println("Logging Out..");
+                    log.info("Logged out successfully");
+            		User.main(null);
+			        break;   
+            case 6: 
+                    System.out.println("Portal terminated");
+                    log.info("Portal was terminated");
+                    System.exit(0);
+                    break;
+
+           default: z1=1;
+           			System.err.println("Enter the correct option number");
+           			log.info("Option entered was wrong");
+           			break;
+          }
+            }while(choice!=4 ||choice!=5);
+
+        	}
+             	catch(InputMismatchException e)
+        	{   
+        		z1=1;
+        		System.err.println("Check the type of input and try again");
+        		log.error("Type of the inputs did not match");
+        	}
+        	catch(AdminException e)
+        	{	
+        		z1=1;
+        		System.err.println(e);
+        		
+        	}
+             	System.err.flush();
+        	scan.nextLine();
+        }while(z1==1);
+    }
+	
+}
+  //                                              ########################## M A N A G E R ########################  	   
+ //-------------------------------------------------------------------------------------------------------------------------------------------------------------------   	   
+      
+    	public static void managerMenu() throws AdminException
+    	{
+    		int z2=0;  
+    		Scanner scan=new Scanner(System.in); 
+    	
+        do
+    {
+    	try{
+        	z2=0;
+    	if(flag==2)
+          
+        { 
+    		do{
+    			
+    			System.out.println("   ");
+    			System.out.println("**********USER MENU********");
+	    		System.out.println("Select one among the following options");
+	        	System.out.println("1.Raise a request for an asset");
+	        	System.out.println("2.View status of an asset request");
+	        	System.out.println("3.Log Out");
+	        	System.out.println("4.Exit");
+	        	
+	        	choice=scan.nextInt();
+	        	int a1=0;
+	        	int a3=0;
+	        	switch(choice)
+	        	{
+	        	case 1: 
+	        		{
+        			IUserService service=new UserService();
+        		    IUserService service1=new UserService();
+        		    IUserService service2=new UserService();
+        		    System.out.println("ASSET INVENTORY");
+        		 
+        	        ArrayList<AssetIMBean> displayInventory= service.displayAssetInventory();
+        	       
+        	        for(AssetIMBean disp:displayInventory)
+        	        {
+        	             System.out.println("Asset Id:" + disp.getAssetId()+" "+ "Asset Name:"+disp.getAssetName());
+        	        }
+        	        
+        	        do{
+                  	  	try{
+	                  	  		a1=0;
+	                  	  		int w=0;
+				        	    System.out.println("Enter Employee number");
+				        	    int eno=scan.nextInt();
+				        	    int validateEmployee=service1.validateEmployee(eno);
+				        	    
+				        	    if(validateEmployee!=-1)
+				        	    {
+				        	    int validmanager=service1.validateManager(eno,managerno);
+				        	    
+				        	    if(validmanager==1)
+				        	    {
+				        	    	do{
+		
+				        	    System.out.println("Enter asset id with reference to the above displayed inventory");
+				        	    int assetid=scan.nextInt();
+				        	    int validassetId=service1.validateassetId(assetid);
+				        	    
+				        	    if(validassetId==1)
+				        	    {
+				        	    int raised=service1.checkAllocation(eno,assetid);
+				        	    if(raised==1){
+				        	    int allocsuccess=service1.raiseAsset(eno,assetid);
+				        	    if(allocsuccess==1){
+			        	        System.out.println("Request submitted successfully");
+			        	        log.info("Request was submitted successfully");
+			        	        int reqidreturn=service2.returnReqid(assetid,eno);
+			        	        System.out.println("Your asset requisition Id is: "+ reqidreturn);
+			        	        log.info("Asset requistion ID was generated and displayed");
+			        	        System.out.println("Please remember this for future reference");
+			        	        //User.managerMenu();
+					        	}							
+					        	else{
+					        		System.err.println("Request submission unsuccessful");
+					        		log.info("Request submission was not successful");
+					        	}
+				        	    }else
+				        	    { 
+				        	    	System.err.println("Asset already raised for this employee number");
+				        	    	log.info("Request submission was not successful because asset was already raised for the employee");
+				        	    	w=1;
+				        	    }
+        	        	
+                  	  		    }
+				        	    
+				        	    else
+				        	    {
+				        	    	System.err.println("Asset Id is invalid");
+				        	    	log.info("Asset id entered was invalid");
+				        	    	w=1;
+				        	    }
+				        	    		
+				        	    }while(w==1);
+				        	    	System.err.flush();
+				        	        //scan.nextLine();
+				        	    }
+				        	    else
+				        	    {
+				        	    	System.err.println("Cannot submit request..Employee does not come under this manager");
+				        	    	log.info("Asset request was unsuccessful because employee was not included for that manager");
+				        	    	User.managerMenu();
+				        	    	
+				        	    }
+                  	  	}else
+                  	  	{
+                  	  		System.err.println("Employee does not exist");
+                  	  		log.info("Employee ID entered was invalid");
+                  	  		a1=1;
+                  	  	}
+
+                  	  	} catch(InputMismatchException e){
+                  	    		a1=1;
+		                  	    System.err.println("Check and re-enter the inputs");
+		                  	    log.error("Input type did not match");
+                  	    }
+                  	  	catch(UserException e)
+                  	  	{
+                  	  		System.err.println(e);
+                  	  		a1=1;
+                  	  	}
+                  	  	System.err.flush();
+                  	  scan.nextLine();
+                  	  
+                 }while(a1==1); 
+        	break;
+        	}
+        	case 2: 
+        	{   
+        		do{
+                      try{
+        				    a3=0;
+	        				System.out.println("Enter employee no.");
+			        		int enumber=scan.nextInt();
+			        		System.out.println("Enter the Asset requisition ID");
+			        		int allocreqid=scan.nextInt();
+			        		IUserService service3=new UserService();
+			        		String reqstatus=service3.validateReqId(enumber,allocreqid);
+			        		
+			        		
+			        		System.out.println("The status of asset requisition for the ID: "+allocreqid+" is "+"<<"+reqstatus+">>");
+			        		log.info("Status of the asset requisition was displayed");
+        			   }
+        			
+        			
+        			catch(InputMismatchException e)
+	        		{
+	        				a3=1;
+	        				System.err.println("Check and re-enter the inputs");
+	        				log.error("Input type did not match");
+        			}
+                      catch(UserException e)
+          			{
+  	        				a3=1;
+  	        				System.err.println(e);
+          			}
+                      System.err.flush();
+        		    scan.nextLine();
+        	}while(a3==1);
+        			break;
+      }
+        	case 3: System.out.println("Logging out..");
+        			log.info("Manager logged out");
+        			User.main(null);
+        	case 4: System.out.println("******Portal Terminated******");	
+        			log.info("Portal was terminated);
+        	        System.exit(0);
+        	
+        	default: z2=1; 
+        		     System.err.println("Enter the correct option number");
+        		     log.info("Option entered was invalid");
+        	        
+        	}
+        }while(choice!=3 || choice!=4);
+        }
+    	
+        }catch(InputMismatchException e)
+    		{
+        	z2=1;
+        	System.err.println("Check the type of inputs.. enter numbers only");
+    		log.error("Type of inputs did not match");
+    		}
+    		
+    		catch(UserException e)
+    		{
+    			z2=1;
+    			System.err.println("Unable to process manager portal");
+    			log.error("Error in processing manager portal");
+    		}
+	
+    	System.err.flush();
+    	scan.nextLine();
+
+   }while(z2==1);
+}
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+}
+
+
